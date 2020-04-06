@@ -1,0 +1,72 @@
+---
+driver:
+  name: vagrant
+  customize:
+    memory: 512
+
+provisioner:
+  name: chef_zero
+  product_name: chef
+  product_version: 14.12.9
+verifier:
+  name: inspec
+
+platforms:
+  - name: centos-7
+
+suites:
+  - name: cgsp-2-core
+    driver:
+            vm_hostname: core.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:
+
+  - name: cg2-web-front
+    driver:
+            vm_hostname: front.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:
+
+  - name: cg2-web-back
+    driver:
+            vm_hostname: back.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:
+
+  - name: cg-db
+    driver:
+            vm_hostname: db.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:
+
+  - name: cg-2-micropayment
+    driver:
+            vm_hostname: cg-2-micropayment.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:
+
+  - name: cg2-2-CoopPlayCore
+    driver:
+            vm_hostname: coopcore.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:
+
+  - name: cg-2-CoopPlay-gw
+    driver:
+            vm_hostname: Coop-gw.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:
+
+  - name: cg-2-CoopPlay-env
+    driver:
+            vm_hostname: micropayment.SparkIT-Games.com
+    run_list:
+      - recipe[learn_chef_httpd::default]
+    attributes:

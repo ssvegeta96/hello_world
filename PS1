@@ -1,0 +1,46 @@
+#I STOLE  this from reddit just to share
+#https://www.reddit.com/r/PowerShell/comments/ic3nqd/update_i_made_an_automatically_populating_script/
+
+#
+#Create Temporary PSDrive so this can be run anywhere
+New-PSDrive -Name "NOC" -PSProvider FileSystem -Root "filepath"
+$noc = Get-ChildItem NOC: | Select-Object Name | Sort-Object Name
+#Create List/Menu for interaction
+function Show-Menu
+{
+param (
+[string]$Title = 'NOC Toolbox 2: Electric Boogaloo')
+#Set the location to the newly minted PSDrive
+Set-Location NOC:
+
+#Wipe out anything on the screen, which is super helpful when coming back after running a script
+Clear-Host
+
+#Generate and actually show the menu
+Write-Host "=========== $Title ===========\n"`
+#This is pulling the current files from NOC: and auto-listing them
+$count = 1
+foreach($nocscript in $noc) {
+Write-Host "$count - $($nocscript.name)"
+$count++
+}
+
+$scriptName = $null
+
+$selection = Read-Host "\nPlease make a selection"`
+
+for($i = 0; $i -lt ($noc.Count); $i++){
+switch($selection){
+1 {$scriptName = $noc[0].Name
+#NOC:$scriptName
+}
+($i + 1) {$scriptName = $noc[$i].Name
+Invoke-Expression ".\$scriptName"
+}
+'q' {exit}
+}
+}
+}
+
+#Hey, this shows the menu! You did it!
+Show-Menu –Title 'NOC Toolbox 2: Electric Boogaloo'

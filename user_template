@@ -18,54 +18,38 @@ validate_input() {
     done
 }
 
-# Get user details with validation
-username=$(validate_input "Enter username: " "^[a-z_][a-z0-9_-]*$" "Invalid username. Use lowercase letters, numbers, underscores, or hyphens.")
-fullname=$(validate_input "Enter full name: " "^[A-Za-z ]+$" "Invalid full name. Use only letters and spaces.")
-password=$(validate_input "Enter password: " ".{8,}" "Password must be at least 8 characters long.")
-uniqueid=$(validate_input "Enter unique ID (1000-9999): " "^[1-9][0-9]{3}$" "Invalid unique ID. Use a number between 1000 and 9999.")
-
-# Create user
-echo "Creating user..."
-dscl . -create /Users/$username
-dscl . -create /Users/$username UserShell /bin/bash
-dscl . -create /Users/$username RealName "$fullname"
-dscl . -create /Users/$username UniqueID $uniqueid
-dscl . -create /Users/$username PrimaryGroupID 20
-dscl . -create /Users/$username NFSHomeDirectory /Users/$username
-dscl . -passwd /Users/$username $password
-
-# Set up groups and permissions
-echo "Setting up groups and permissions..."
-dseditgroup -o edit -a $username -t user admin
-dseditgroup -o edit -a $username -t user _lpadmin
-createhomedir -c -u $username
-
-# Customize dock items
-echo "Customizing dock items..."
-read -p "Do you want to customize dock items? (y/n): " customize_dock
-if [[ $customize_dock =~ ^[Yy]$ ]]; then
-    sudo -u $username dockutil --add /Applications/Safari.app
-    sudo -u $username dockutil --add /Applications/Mail.app
-    sudo -u $username dockutil --add /Applications/Calendar.app
+# Check macOS version
+os_version=$(sw_vers -productVersion)
+if [[ $(echo $os_version | cut -d. -f1) -lt 10 || ($(echo $os_version | cut -d. -f1) -eq 10 && $(echo $os_version | cut -d. -f2) -lt 9) ]]; then
+    echo "This script requires macOS 10.9 or later. Your version: $os_version"
+    exit 1
 fi
 
-# Set up app access and other preferences
-echo "Setting up app access and preferences..."
-sudo -u $username defaults write com.apple.ScreenSharing dontWarnOnOpen -bool true
-sudo -u $username defaults write com.apple.Safari HomePage -string "https://www.example.com"
+# Check hardware compatibility
+model=$(sysctl -n hw.model)
+compatible_models=("MacBookPro15," "MacBookAir8," "Macmini8," "iMac19," "iMacPro1," "MacPro7," "Mac13,")
+is_compatible=false
+for prefix in "${compatible_models[@]}"; do
+    if [[ $model == $prefix* ]]; then
+        is_compatible=true
+        break
+    fi
+done
 
-# Set up Outset for login-once script
-echo "Setting up Outset..."
-read -p "Do you want to set up an Outset login-once script? (y/n): " setup_outset
-if [[ $setup_outset =~ ^[Yy]$ ]]; then
-    mkdir -p /usr/local/outset/login-once
-    cat << EOF > /usr/local/outset/login-once/setup_new_user.sh
-#!/bin/bash
-# Add your custom setup commands here
-# This will run only once when the new user first logs in
-EOF
-    chmod +x /usr/local/outset/login-once/setup_new_user.sh
-    echo "Outset login-once script created at /usr/local/outset/login-once/setup_new_user.sh"
+if ! $is_compatible; then
+    echo "This Mac model ($model) may not be compatible with macOS Sonoma."
+    exit 1
 fi
 
-echo "User creation and setup complete!"
+# Check RAM
+total_ram=$(sysctl -n hw.memsize)
+ram_gb=$((total_ram / 1024 / 1024 / 1024))
+if [[ $ram_gb -lt 4 ]]; then
+    echo "Your Mac needs at least 4GB of RAM. Current RAM: ${ram_gb}GB"
+    exit 1
+fi
+
+# Check available disk space
+available_space=$(df -H / | awk 'NR==2 {print $4}' | sed 's/G//')
+if [[ $(echo "$available_space < 60" | bc) -eq 1 ]]; then
+    echo "You need at least 60GB of available space

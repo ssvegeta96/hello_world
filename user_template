@@ -19,27 +19,27 @@ validate_input() {
 }
 
 # Check macOS version
-os_version=$(sw_vers -productVersion)
-if [[ $(echo $os_version | cut -d. -f1) -lt 10 || ($(echo $os_version | cut -d. -f1) -eq 10 && $(echo $os_version | cut -d. -f2) -lt 9) ]]; then
-    echo "This script requires macOS 10.9 or later. Your version: $os_version"
-    exit 1
-fi
+#os_version=$(sw_vers -productVersion)
+#if [[ $(echo $os_version | cut -d. -f1) -lt 10 || ($(echo $os_version | cut -d. -f1) -eq 10 && $(echo $os_version | cut -d. -f2) -lt 9) ]]; then
+#    echo "This script requires macOS 10.9 or later. Your version: $os_version"
+#    exit 1
+#fi
 
 # Check hardware compatibility
-model=$(sysctl -n hw.model)
-compatible_models=("MacBookPro15," "MacBookAir8," "Macmini8," "iMac19," "iMacPro1," "MacPro7," "Mac13,")
-is_compatible=false
-for prefix in "${compatible_models[@]}"; do
-    if [[ $model == $prefix* ]]; then
-        is_compatible=true
-        break
-    fi
-done
+#model=$(sysctl -n hw.model)
+#compatible_models=("MacBookPro15," "MacBookAir8," "Macmini8," "iMac19," "iMacPro1," "MacPro7," "Mac13,")
+#is_compatible=false
+#for prefix in "${compatible_models[@]}"; do
+#    if [[ $model == $prefix* ]]; then
+#        is_compatible=true
+#        break
+#    fi
+#done
 
-if ! $is_compatible; then
-    echo "This Mac model ($model) may not be compatible with macOS Sonoma."
-    exit 1
-fi
+#if ! $is_compatible; then
+#    echo "This Mac model ($model) may not be compatible with macOS Sonoma."
+#    exit 1
+#fi
 
 # Check RAM
 total_ram=$(sysctl -n hw.memsize)
